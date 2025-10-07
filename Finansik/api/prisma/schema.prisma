@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  user_id     Int      @id @default(autoincrement())
+  login       String   @unique
+  password    String
+  visualname  String
+  role        String   @default("user") // user | admin
+
+  categories  categories[]
+  operations  operations[]
+  assets      assets[]
+  savings     savings_accounts[]
+  loans       loans[]
+  goals       financial_goals[]
+  notifications notifications[]
+  reports     reports[]
+  limits      categorylimit[]
+  refresh_tokens refresh_tokens[]
+}
+
+model categories {
+  category_id Int      @id @default(autoincrement())
+  user        Users    @relation(fields: [user_id], references: [user_id])
+  user_id     Int
+  name        String
+  balance     Int      @default(0)
+  operations  operations[]
+  limits      categorylimit[]
+}
+
+model categorylimit {
+  id          Int      @id @default(autoincrement())
+  user        Users    @relation(fields: [user_id], references: [user_id])
+  user_id     Int
+  category    categories @relation(fields: [category_id], references: [category_id])
+  category_id Int
+  limit       Int
+}
+
+model operations {
+  operation_id Int     @id @default(autoincrement())
+  user         Users   @relation(fields: [user_id], references: [user_id])
+  user_id      Int
+  category     categories @relation(fields: [category_id], references: [category_id])
+  category_id  Int
+  type         String   // income | expense
+  transaction  Int
+  date         DateTime @default(now())
+}
+
+model assets {
+  id      Int    @id @default(autoincrement())
+  user    Users  @relation(fields: [user_id], references: [user_id])
+  user_id Int
+  name    String
+  balance Int     @default(0)
+}
+
+model savings_accounts {
+  id           Int    @id @default(autoincrement())
+  user         Users  @relation(fields: [user_id], references: [user_id])
+  user_id      Int
+  saving_name  String
+  balance      Int     @default(0)
+  interest_rate Float  @default(0)
+}
+
+model financial_goals {
+  id        Int    @id @default(autoincrement())
+  user      Users  @relation(fields: [user_id], references: [user_id])
+  user_id   Int
+  goal_name String
+  goal      Int
+}
+
+model loans {
+  id            Int    @id @default(autoincrement())
+  user          Users  @relation(fields: [user_id], references: [user_id])
+  user_id       Int
+  credit_name   String
+  loan_balance  Int
+  loan_payment  Int
+  payment_date  DateTime
+}
+
+model notifications {
+  id       Int    @id @default(autoincrement())
+  user     Users  @relation(fields: [user_id], references: [user_id])
+  user_id  Int
+  message  String
+  created  DateTime @default(now())
+}
+
+model reports {
+  id      Int    @id @default(autoincrement())
+  user    Users  @relation(fields: [user_id], references: [user_id])
+  user_id Int
+  file    String
+  created DateTime @default(now())
+}
+
+model refresh_tokens {
+  id         Int      @id @default(autoincrement())
+  user       Users    @relation(fields: [user_id], references: [user_id])
+  user_id    Int
+  token      String   @unique
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+
+
