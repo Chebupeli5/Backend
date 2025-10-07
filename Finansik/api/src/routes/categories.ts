@@ -8,7 +8,10 @@ const router = Router();
 
 router.use(requireAuth);
 
-const categorySchema = z.object({ name: z.string().min(1), balance: z.number().int().optional() });
+const categorySchema = z.object({
+  name: z.string().trim().min(1),
+  balance: z.coerce.number().int().optional(),
+});
 
 router.get('/', async (req: AuthRequest, res) => {
   const list = await prisma.categories.findMany({ where: { user_id: req.user!.userId } });
