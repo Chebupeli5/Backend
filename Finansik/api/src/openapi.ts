@@ -40,10 +40,58 @@ export const openApiSpec = {
     },
     '/api/categories': {
       get: { summary: 'List categories', responses: { '200': { description: 'ok' } } },
-      post: { summary: 'Create category', requestBody: { required: true }, responses: { '201': { description: 'created' } } },
+      post: {
+        summary: 'Create category',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  balance: { type: 'integer', description: 'Optional. Defaults to 0' },
+                },
+                required: ['name'],
+              },
+              examples: {
+                basic: { value: { name: 'Food' } },
+                withBalance: { value: { name: 'Food', balance: 0 } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'created' } },
+      },
     },
-    '/api/operations/summary/monthly': { get: { summary: 'Monthly summary', responses: { '200': { description: 'ok' } } } },
     '/api/analytics/balance': { get: { summary: 'Balances', responses: { '200': { description: 'ok' } } } },
+    // Assets
+    '/api/finance/assets': {
+      get: { summary: 'List assets', responses: { '200': { description: 'ok' } } },
+      post: {
+        summary: 'Create asset',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  balance: { type: 'integer', description: 'Optional. Defaults to 0' },
+                },
+                required: ['name'],
+              },
+              examples: {
+                basic: { value: { name: 'Cash' } },
+                withBalance: { value: { name: 'Debit Card', balance: 15000 } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
   },
 } as const;
 
