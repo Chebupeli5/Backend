@@ -1,0 +1,27 @@
+version: "2"
+authtoken: 33n6dGDcYAehXDyYUpfnyTk2xK3_7eMkewDWdM1B4WRSjq6xk
+
+tunnels:
+  # API сервис - основные endpoints
+  api:
+    proto: http
+    addr: api:3000
+    schemes: ["https"]
+    
+  # Swagger документация
+  docs:
+    proto: http
+    addr: api:3000
+    schemes: ["https"]
+    inspect: false
+    
+  # Adminer для управления базой данных
+  adminer:
+    proto: http
+    addr: adminer:8080
+    schemes: ["https"]
+    inspect: false
+
+# Логирование
+log_level: info
+log_format: logfmt
