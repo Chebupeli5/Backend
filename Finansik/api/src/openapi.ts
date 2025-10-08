@@ -1,7 +1,11 @@
 export const openApiSpec = {
   openapi: '3.0.3',
   info: { title: 'Finansik API', version: '0.1.0' },
-  servers: [{ url: 'http://localhost:3000' }],
+  servers: [
+    { url: 'http://localhost:3000', description: 'Local development server' },
+    { url: 'http://{host}:3000', description: 'Custom server', variables: { host: { default: 'localhost' } } },
+    { url: 'http://{host}:80', description: 'Via nginx gateway', variables: { host: { default: 'localhost' } } }
+  ],
   components: {
     securitySchemes: {
       bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -148,6 +152,76 @@ export const openApiSpec = {
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
         ],
         responses: { '204': { description: 'deleted' } },
+      },
+    },
+    // Savings Accounts
+    '/api/savings_accounts': {
+      get: { 
+        summary: 'List savings accounts', 
+        responses: { '200': { description: 'List of savings accounts for the authenticated user' } } 
+      },
+      post: {
+        summary: 'Create savings account',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  saving_name: { type: 'string', minLength: 1, description: 'Name of the savings account' },
+                  balance: { type: 'integer', description: 'Optional. Initial balance. Defaults to 0' },
+                  interest_rate: { type: 'number', minimum: 0, maximum: 100, description: 'Optional. Interest rate percentage. Defaults to 0' },
+                  user_id: { type: 'integer', description: 'Optional, admin only: create for another user' },
+                },
+                required: ['saving_name'],
+              },
+              examples: {
+                basic: { value: { saving_name: 'Emergency Fund' } },
+                withDetails: { value: { saving_name: 'High Yield Savings', balance: 50000, interest_rate: 4.5 } },
+                adminForUser: { value: { saving_name: 'Vacation Fund', user_id: 1 } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'Savings account created successfully' } },
+      },
+    },
+    '/api/savings_accounts/{id}': {
+      put: {
+        summary: 'Update savings account',
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  saving_name: { type: 'string', minLength: 1, description: 'Name of the savings account' },
+                  balance: { type: 'integer', description: 'Current balance' },
+                  interest_rate: { type: 'number', minimum: 0, maximum: 100, description: 'Interest rate percentage' },
+                },
+              },
+              examples: {
+                updateName: { value: { saving_name: 'Updated Emergency Fund' } },
+                updateBalance: { value: { balance: 75000 } },
+                updateInterest: { value: { interest_rate: 5.0 } },
+                fullUpdate: { value: { saving_name: 'Premium Savings', balance: 100000, interest_rate: 6.0 } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'Savings account updated successfully' } },
+      },
+      delete: {
+        summary: 'Delete savings account by id',
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        responses: { '204': { description: 'Savings account deleted successfully' } },
       },
     },
   },
