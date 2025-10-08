@@ -1,0 +1,108 @@
+GET http://localhost:3000/health
+
+### Signup
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "login": "demo",
+  "password": "password123",
+  "visualname": "Demo User"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "login": "demo",
+  "password": "password123"
+}
+
+### Example authorized request (replace TOKEN)
+GET http://localhost:3000/api/categories
+Authorization: Bearer TOKEN
+
+### Financial Goals API Examples (replace TOKEN with actual token)
+
+### Get all goals
+GET http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+
+### Create a new goal
+POST http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Emergency Fund",
+  "goal": 50000,
+  "description": "Build emergency fund for 6 months of expenses",
+  "target_date": "2024-12-31T23:59:59.000Z",
+  "priority": "high",
+  "category": "Emergency",
+  "current_amount": 0
+}
+
+### Create another goal
+POST http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Vacation Fund",
+  "goal": 30000,
+  "description": "Save for summer vacation",
+  "target_date": "2024-06-30T23:59:59.000Z",
+  "priority": "medium",
+  "category": "Travel",
+  "current_amount": 5000
+}
+
+### Get specific goal by ID (replace 1 with actual goal ID)
+GET http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+
+### Update goal (replace 1 with actual goal ID)
+PUT http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Emergency Fund - Updated",
+  "description": "Updated description",
+  "priority": "high",
+  "current_amount": 10000
+}
+
+### Add money to goal (replace 1 with actual goal ID)
+POST http://localhost:3000/api/goals/1/add
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "amount": 5000
+}
+
+### Mark goal as completed (replace 1 with actual goal ID)
+POST http://localhost:3000/api/goals/1/complete
+Authorization: Bearer TOKEN
+
+### Get goal analytics
+GET http://localhost:3000/api/goals/analytics/summary
+Authorization: Bearer TOKEN
+
+### Get goals by priority
+GET http://localhost:3000/api/goals/priority/high
+Authorization: Bearer TOKEN
+
+GET http://localhost:3000/api/goals/priority/medium
+Authorization: Bearer TOKEN
+
+GET http://localhost:3000/api/goals/priority/low
+Authorization: Bearer TOKEN
+
+### Delete goal (replace 1 with actual goal ID)
+DELETE http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+

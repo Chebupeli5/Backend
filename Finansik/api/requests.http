@@ -23,5 +23,208 @@ Content-Type: application/json
 GET http://localhost:3000/api/categories
 Authorization: Bearer TOKEN
 
+### Financial Goals API Examples (replace TOKEN with actual token)
 
+### Get all goals
+GET http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+
+### Create a new goal
+POST http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Emergency Fund",
+  "goal": 50000,
+  "description": "Build emergency fund for 6 months of expenses",
+  "target_date": "2024-12-31T23:59:59.000Z",
+  "priority": "high",
+  "category": "Emergency",
+  "current_amount": 0
+}
+
+### Create another goal
+POST http://localhost:3000/api/goals
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Vacation Fund",
+  "goal": 30000,
+  "description": "Save for summer vacation",
+  "target_date": "2024-06-30T23:59:59.000Z",
+  "priority": "medium",
+  "category": "Travel",
+  "current_amount": 5000
+}
+
+### Get specific goal by ID (replace 1 with actual goal ID)
+GET http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+
+### Update goal (replace 1 with actual goal ID)
+PUT http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "goal_name": "Emergency Fund - Updated",
+  "description": "Updated description",
+  "priority": "high",
+  "current_amount": 10000
+}
+
+### Add money to goal (replace 1 with actual goal ID)
+POST http://localhost:3000/api/goals/1/add
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "amount": 5000
+}
+
+### Mark goal as completed (replace 1 with actual goal ID)
+POST http://localhost:3000/api/goals/1/complete
+Authorization: Bearer TOKEN
+
+### Get goal analytics
+GET http://localhost:3000/api/goals/analytics/summary
+Authorization: Bearer TOKEN
+
+### Get goals by priority
+GET http://localhost:3000/api/goals/priority/high
+Authorization: Bearer TOKEN
+
+GET http://localhost:3000/api/goals/priority/medium
+Authorization: Bearer TOKEN
+
+GET http://localhost:3000/api/goals/priority/low
+Authorization: Bearer TOKEN
+
+### Delete goal (replace 1 with actual goal ID)
+DELETE http://localhost:3000/api/goals/1
+Authorization: Bearer TOKEN
+
+### Enhanced Operations API Examples (replace TOKEN with actual token)
+
+### Get all operations with pagination and filtering
+GET http://localhost:3000/api/operations?page=1&limit=10&sort_by=date&sort_order=desc
+Authorization: Bearer TOKEN
+
+### Get operations with advanced filtering
+GET http://localhost:3000/api/operations?from=2024-01-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z&type=expense&min_amount=100&max_amount=1000
+Authorization: Bearer TOKEN
+
+### Search operations by description
+GET http://localhost:3000/api/operations?search=grocery&page=1&limit=20
+Authorization: Bearer TOKEN
+
+### Create a new operation
+POST http://localhost:3000/api/operations
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "category_id": 1,
+  "type": "expense",
+  "transaction": 2500,
+  "description": "Grocery shopping at supermarket",
+  "tags": "food,groceries,weekly",
+  "date": "2024-10-08T15:30:00.000Z"
+}
+
+### Create a recurring operation
+POST http://localhost:3000/api/operations
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "category_id": 2,
+  "type": "income",
+  "transaction": 50000,
+  "description": "Monthly salary",
+  "tags": "salary,work,monthly",
+  "is_recurring": true,
+  "recurring_frequency": "monthly",
+  "recurring_end_date": "2025-12-31T23:59:59.000Z"
+}
+
+### Get specific operation by ID (replace 1 with actual operation ID)
+GET http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+
+### Update operation (replace 1 with actual operation ID)
+PUT http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "transaction": 3000,
+  "description": "Updated grocery shopping amount",
+  "tags": "food,groceries,weekly,updated"
+}
+
+### Delete operation (replace 1 with actual operation ID)
+DELETE http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+
+### Bulk create operations
+POST http://localhost:3000/api/operations/bulk
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "category_id": 1,
+      "type": "expense",
+      "transaction": 1500,
+      "description": "Coffee and breakfast",
+      "tags": "food,coffee"
+    },
+    {
+      "category_id": 1,
+      "type": "expense",
+      "transaction": 800,
+      "description": "Lunch with colleagues",
+      "tags": "food,lunch,social"
+    },
+    {
+      "category_id": 3,
+      "type": "expense",
+      "transaction": 2000,
+      "description": "Gas station",
+      "tags": "transport,fuel"
+    }
+  ]
+}
+
+### Get monthly summary
+GET http://localhost:3000/api/operations/summary/monthly?year=2024
+Authorization: Bearer TOKEN
+
+### Get category summary
+GET http://localhost:3000/api/operations/summary/by-category?year=2024&type=expense
+Authorization: Bearer TOKEN
+
+### Get daily summary (last 30 days)
+GET http://localhost:3000/api/operations/summary/daily
+Authorization: Bearer TOKEN
+
+### Get daily summary for specific period
+GET http://localhost:3000/api/operations/summary/daily?from=2024-09-01T00:00:00.000Z&to=2024-09-30T23:59:59.999Z
+Authorization: Bearer TOKEN
+
+### Get spending analytics and insights
+GET http://localhost:3000/api/operations/analytics/insights?period=90
+Authorization: Bearer TOKEN
+
+### Export operations to CSV
+GET http://localhost:3000/api/operations/export/csv?from=2024-01-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z
+Authorization: Bearer TOKEN
+
+### Export filtered operations to CSV
+GET http://localhost:3000/api/operations/export/csv?type=expense&category_id=1
+Authorization: Bearer TOKEN
 
