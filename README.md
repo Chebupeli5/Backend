@@ -13,7 +13,7 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone <your-repo-url>
+git clone https://github.com/Chebupeli5/Backend.git
 cd Finansik/api
 
 # Запустите с Docker Compose
@@ -87,7 +87,7 @@ POST /api/auth/login
 }
 
 # Использование токена
-Authorization: Bearer <your-jwt-token>
+Authorization: Bearer <jwt-token>
 ```
 
 ## 📊 Основные сущности
@@ -179,7 +179,7 @@ npm run seed
 
 1. Запустите контейнеры: `docker-compose up -d`
 2. Получите ngrok URL: `./get-ngrok-url.sh`
-3. Откройте Swagger UI: `https://your-url.ngrok-free.dev/docs`
+3. Откройте Swagger UI: `https://your-ngrok-url.ngrok-free.dev/docs`
 
 ### Через локальную сеть
 
@@ -298,6 +298,6 @@ docker-compose logs gateway
 
 **Сделано с ❤️ для управления личными финансами**
 
-[🚀 Начать работу](https://unsystematizing-citizenly-gretchen.ngrok-free.dev/docs) • [📖 Документация](https://unsystematizing-citizenly-gretchen.ngrok-free.dev/docs) • [🐛 Сообщить об ошибке](https://github.com/your-repo/issues)
+[🚀 Начать работу](https://unsystematizing-citizenly-gretchen.ngrok-free.dev/docs) • [📖 Документация](https://unsystematizing-citizenly-gretchen.ngrok-free.dev/docs) • [🐛 Сообщить об ошибке](https://github.com/Chebupeli5/Backend/issues)
 
 </div>
