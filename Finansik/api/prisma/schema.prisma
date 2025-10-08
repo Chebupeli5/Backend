@@ -74,11 +74,19 @@ model savings_accounts {
 }
 
 model financial_goals {
-  id        Int    @id @default(autoincrement())
-  user      Users  @relation(fields: [user_id], references: [user_id])
-  user_id   Int
-  goal_name String
-  goal      Int
+  id              Int      @id @default(autoincrement())
+  user            Users    @relation(fields: [user_id], references: [user_id])
+  user_id         Int
+  goal_name       String
+  goal            Int
+  description     String?
+  target_date     DateTime?
+  priority        String   @default("medium") // low | medium | high
+  category        String?
+  current_amount  Int      @default(0)
+  is_completed    Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
 }
 
 model loans {
