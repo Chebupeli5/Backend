@@ -8,7 +8,6 @@ const router = Router();
 router.use(requireAuth);
 
 const assetSchema = z.object({ name: z.string().min(1), balance: z.number().int().optional(), user_id: z.number().int().optional() });
-const savingSchema = z.object({ saving_name: z.string().min(1), balance: z.number().int().optional(), interest_rate: z.number().optional() });
 
 router.get('/assets', async (req: AuthRequest, res) => {
   const list = await prisma.assets.findMany({ where: { user_id: req.user!.userId } });
@@ -25,17 +24,6 @@ router.post('/assets', async (req: AuthRequest, res) => {
   res.status(201).json(created);
 });
 
-router.get('/savings', async (req: AuthRequest, res) => {
-  const list = await prisma.savings_accounts.findMany({ where: { user_id: req.user!.userId } });
-  res.json(list);
-});
-
-router.post('/savings', async (req: AuthRequest, res) => {
-  const parsed = savingSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const created = await prisma.savings_accounts.create({ data: { user_id: req.user!.userId, ...parsed.data } });
-  res.status(201).json(created);
-});
 
 router.delete('/assets/:id', async (req: AuthRequest, res) => {
   const id = Number(req.params.id);
