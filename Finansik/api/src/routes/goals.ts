@@ -18,6 +18,11 @@ const goalSchema = z.object({
   user_id: z.coerce.number().int().optional(),
 });
 
+const goalUpdateSchema = goalSchema.partial().extend({
+  amount: z.coerce.number().int().positive().optional(),
+  complete: z.coerce.boolean().optional(),
+});
+
 // GET /goals - Get all goals for the authenticated user
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
@@ -88,7 +93,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const parsed = goalSchema.partial().safeParse(req.body);
+    const parsed = goalUpdateSchema.safeParse(req.body);
     
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
@@ -103,9 +108,43 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Goal not found' });
     }
 
+    const data = parsed.data as any;
+    const updateData: any = {};
+    // regular field updates
+    if (data.goal_name !== undefined) updateData.goal_name = data.goal_name;
+    if (data.goal !== undefined) updateData.goal = data.goal;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.target_date !== undefined) updateData.target_date = data.target_date;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.category !== undefined) updateData.category = data.category;
+    if (data.current_amount !== undefined) updateData.current_amount = data.current_amount;
+
+    // actions
+    const finalGoalTarget = updateData.goal ?? existingGoal.goal;
+
+    if (data.amount !== undefined) {
+      if (existingGoal.is_completed) {
+        return res.status(400).json({ error: 'Cannot add money to completed goal' });
+      }
+      const baseAmount = updateData.current_amount !== undefined ? updateData.current_amount : existingGoal.current_amount;
+      const newAmount = baseAmount + data.amount;
+      updateData.current_amount = newAmount;
+      if (newAmount >= finalGoalTarget) {
+        updateData.is_completed = true;
+      }
+    }
+
+    if (data.complete === true) {
+      updateData.is_completed = true;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'Nothing to update' });
+    }
+
     const updated = await prisma.financial_goals.update({
       where: { id },
-      data: parsed.data,
+      data: updateData,
     });
     
     res.json(updated);
@@ -138,61 +177,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /goals/:id/add-money - Add money to a goal
-router.post('/:id/add-money', async (req: AuthRequest, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    const { amount } = z.object({ amount: z.coerce.number().int().positive() }).parse(req.body);
 
-    const goal = await prisma.financial_goals.findFirst({
-      where: { id, user_id: req.user!.userId }
-    });
-
-    if (!goal) {
-      return res.status(404).json({ error: 'Goal not found' });
-    }
-
-    if (goal.is_completed) {
-      return res.status(400).json({ error: 'Cannot add money to completed goal' });
-    }
-
-    const updated = await prisma.financial_goals.update({
-      where: { id },
-      data: { 
-        current_amount: goal.current_amount + amount,
-        is_completed: goal.current_amount + amount >= goal.goal
-      },
-    });
-    
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to add money to goal' });
-  }
-});
-
-// POST /goals/:id/complete - Mark goal as completed
-router.post('/:id/complete', async (req: AuthRequest, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-
-    const goal = await prisma.financial_goals.findFirst({
-      where: { id, user_id: req.user!.userId }
-    });
-
-    if (!goal) {
-      return res.status(404).json({ error: 'Goal not found' });
-    }
-
-    const updated = await prisma.financial_goals.update({
-      where: { id },
-      data: { is_completed: true },
-    });
-    
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to complete goal' });
-  }
-});
 
 // GET /goals/analytics/summary - Get goal analytics and summary
 router.get('/analytics/summary', async (req: AuthRequest, res: Response) => {

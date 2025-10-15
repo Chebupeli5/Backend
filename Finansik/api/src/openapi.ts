@@ -578,7 +578,7 @@ export const openApiSpec = {
       },
       put: {
         tags: ['Goals'],
-        summary: 'Update financial goal',
+        summary: 'Update financial goal (supports amount addition and completion)',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
         ],
@@ -596,12 +596,15 @@ export const openApiSpec = {
                   priority: { type: 'string', enum: ['low', 'medium', 'high'], description: 'Priority level of the goal' },
                   category: { type: 'string', description: 'Category for the goal' },
                   current_amount: { type: 'integer', minimum: 0, description: 'Current amount saved towards the goal' },
+                  amount: { type: 'integer', minimum: 1, description: 'Add money to the goal; will also mark completed if target reached' },
+                  complete: { type: 'boolean', description: 'Mark goal as completed' },
                 },
               },
               examples: {
                 updateName: { value: { goal_name: 'Updated Emergency Fund' } },
                 updateAmount: { value: { goal: 75000 } },
-                updatePriority: { value: { priority: 'high' } },
+                addMoney: { value: { amount: 5000 } },
+                complete: { value: { complete: true } },
                 fullUpdate: { value: { 
                   goal_name: 'Premium Emergency Fund', 
                   goal: 100000, 
@@ -613,7 +616,11 @@ export const openApiSpec = {
             },
           },
         },
-        responses: { '200': { description: 'Goal updated successfully' } },
+        responses: { 
+          '200': { description: 'Goal updated successfully' },
+          '400': { description: 'Cannot add money to completed goal' },
+          '404': { description: 'Goal not found' },
+        },
       },
       delete: {
         tags: ['Goals'],
@@ -624,52 +631,7 @@ export const openApiSpec = {
         responses: { '204': { description: 'Goal deleted successfully' } },
       },
     },
-    '/api/goals/{id}/add-money': {
-      post: {
-        tags: ['Goals'],
-        summary: 'Add money to a goal',
-        parameters: [
-          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
-        ],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  amount: { type: 'integer', minimum: 1, description: 'Amount to add to the goal' },
-                },
-                required: ['amount'],
-              },
-              examples: {
-                addMoney: { value: { amount: 5000 } },
-                largeAmount: { value: { amount: 25000 } },
-              },
-            },
-          },
-        },
-        responses: { 
-          '200': { description: 'Money added to goal' },
-          '400': { description: 'Cannot add money to completed goal' },
-          '404': { description: 'Goal not found' },
-        },
-      },
-    },
-    '/api/goals/{id}/complete': {
-      post: {
-        tags: ['Goals'],
-        summary: 'Mark goal as completed',
-        parameters: [
-          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
-        ],
-        responses: { 
-          '200': { description: 'Goal marked as completed' },
-          '404': { description: 'Goal not found' },
-        },
-      },
-    },
-    '/api/goals/analytics/summary': {
+            '/api/goals/analytics/summary': {
       get: {
         tags: ['Goals'],
         summary: 'Get goal analytics and summary',
