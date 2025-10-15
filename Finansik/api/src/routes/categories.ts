@@ -92,9 +92,27 @@ router.put('/:id', async (req: AuthRequest, res) => {
 });
 
 router.delete('/:id', async (req: AuthRequest, res) => {
-  const id = Number(req.params.id);
-  await prisma.categories.delete({ where: { category_id: id } });
-  res.status(204).end();
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid id' });
+
+    // Ensure category exists and belongs to current user (or admin)
+    const category = await prisma.categories.findUnique({ where: { category_id: id } });
+    if (!category) return res.status(404).json({ error: 'Category not found' });
+    const isAdmin = (req.user?.role ?? 'user') === 'admin';
+    if (!isAdmin && category.user_id !== req.user!.userId) return res.status(404).json({ error: 'Category not found' });
+
+    // Delete dependencies first, then category (single transaction)
+    await prisma.$transaction([
+      prisma.categorylimit.deleteMany({ where: { category_id: id, user_id: category.user_id } }),
+      prisma.operations.deleteMany({ where: { category_id: id, user_id: category.user_id } }),
+      prisma.categories.delete({ where: { category_id: id } }),
+    ]);
+
+    res.status(204).end();
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
 });
 
 // Category limits
