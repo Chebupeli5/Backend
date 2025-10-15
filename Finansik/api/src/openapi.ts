@@ -126,6 +126,35 @@ export const openApiSpec = {
       },
     },
     '/api/categories/{id}': {
+      put: {
+        tags: ['Categories'],
+        summary: 'Update category',
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  balance: { type: 'integer' },
+                  limit: { type: 'integer', nullable: true, description: 'Monthly limit; null to remove' },
+                },
+              },
+              examples: {
+                updateName: { value: { name: 'Еда и напитки' } },
+                updateBalance: { value: { balance: 12000 } },
+                setLimit: { value: { limit: 20000 } },
+                removeLimit: { value: { limit: null } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'updated' } },
+      },
       delete: {
         tags: ['Categories'],
         summary: 'Delete category by id',
@@ -163,7 +192,7 @@ export const openApiSpec = {
                   category_id: { type: 'integer' },
                   type: { type: 'string', enum: ['income', 'expense'] },
                   transaction: { type: 'integer' },
-                  date: { type: 'string', format: 'date-time' },
+                  date: { type: 'string', description: 'Operation date. Accepts ISO 8601 (e.g., 2025-10-15T10:00:00.000Z) or dd.MM.yyyy (e.g., 15.10.2025). If omitted, current date is used.' },
                   description: { type: 'string' },
                   tags: { type: 'string', description: 'Comma-separated tags' },
                   is_recurring: { type: 'boolean' },
@@ -173,8 +202,8 @@ export const openApiSpec = {
                 required: ['category_id', 'type', 'transaction'],
               },
               examples: {
-                income: { value: { category_id: 1, type: 'income', transaction: 50000, description: 'Salary', tags: 'salary,job' } },
-                expense: { value: { category_id: 2, type: 'expense', transaction: 1500, description: 'Groceries', tags: 'food,supermarket' } },
+                income: { value: { category_id: 1, type: 'income', transaction: 50000, description: 'Salary', tags: 'salary,job', date: '15.10.2025' } },
+                expense: { value: { category_id: 2, type: 'expense', transaction: 1500, description: 'Groceries', tags: 'food,supermarket', date: '2025-10-15T10:00:00.000Z' } },
               },
             },
           },
@@ -195,7 +224,25 @@ export const openApiSpec = {
         parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/OperationUpdate' } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  category_id: { type: 'integer' },
+                  type: { type: 'string', enum: ['income', 'expense'] },
+                  transaction: { type: 'integer' },
+                  date: { type: 'string', format: 'date-time' },
+                  description: { type: 'string' },
+                  tags: { type: 'string', description: 'Comma-separated tags' },
+                  is_recurring: { type: 'boolean' },
+                  recurring_frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+                  recurring_end_date: { type: 'string', format: 'date-time' },
+                },
+                additionalProperties: false,
+              },
+            },
+          },
         },
         responses: { '200': { description: 'updated' } },
       },
@@ -341,6 +388,33 @@ export const openApiSpec = {
       },
     },
     '/api/finance/assets/{id}': {
+      put: {
+        tags: ['Assets'],
+        summary: 'Update asset by id',
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  balance: { type: 'integer' },
+                },
+              },
+              examples: {
+                updateName: { value: { name: 'Наличные' } },
+                updateBalance: { value: { balance: 25000 } },
+                updateBoth: { value: { name: 'Дебетовая карта', balance: 150000 } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'updated' } },
+      },
       delete: {
         tags: ['Assets'],
         summary: 'Delete asset by id',
@@ -355,7 +429,29 @@ export const openApiSpec = {
       get: { 
         tags: ['Savings'],
         summary: 'List savings accounts', 
-        responses: { '200': { description: 'List of savings accounts for the authenticated user' } } 
+        responses: {
+          '200': {
+            description: 'List of savings accounts for the authenticated user',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      saving_name: { type: 'string' },
+                      balance: { type: 'integer' },
+                      interest_rate: { type: 'number' },
+                      monthly_yield: { type: 'integer', description: 'Computed monthly yield based on interest_rate and balance' },
+                      yearly_yield: { type: 'integer', description: 'Computed yearly yield based on interest_rate and balance' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }, 
       },
       post: {
         tags: ['Savings'],
