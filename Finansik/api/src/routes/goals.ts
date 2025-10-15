@@ -21,6 +21,7 @@ const goalSchema = z.object({
 const goalUpdateSchema = goalSchema.partial().extend({
   amount: z.coerce.number().int().positive().optional(),
   complete: z.coerce.boolean().optional(),
+  is_completed: z.coerce.boolean().optional(),
 });
 
 // GET /goals - Get all goals for the authenticated user
@@ -136,6 +137,10 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 
     if (data.complete === true) {
       updateData.is_completed = true;
+    }
+
+    if (data.is_completed !== undefined) {
+      updateData.is_completed = data.is_completed;
     }
 
     if (Object.keys(updateData).length === 0) {
