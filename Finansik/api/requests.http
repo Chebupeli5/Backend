@@ -102,3 +102,61 @@ Authorization: Bearer TOKEN
 
 
 
+
+### Operations API Examples (replace TOKEN with actual token)
+
+### List operations
+GET http://localhost:3000/api/operations?from=2024-01-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z&type=expense
+Authorization: Bearer TOKEN
+
+### Create operation (expense)
+POST http://localhost:3000/api/operations
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "category_id": 1,
+  "type": "expense",
+  "transaction": 2000,
+  "description": "Groceries",
+  "tags": "food,supermarket",
+  "date": "2024-10-01T12:00:00.000Z"
+}
+
+### Get operation by id
+GET http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+
+### Update operation
+PUT http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "description": "Groceries - discounted",
+  "tags": "food,supermarket,discount"
+}
+
+### Delete operation
+DELETE http://localhost:3000/api/operations/1
+Authorization: Bearer TOKEN
+
+### Monthly summary
+GET http://localhost:3000/api/operations/summary/monthly?year=2024
+Authorization: Bearer TOKEN
+
+### Category summary
+GET http://localhost:3000/api/operations/summary/by-category
+Authorization: Bearer TOKEN
+
+### Daily summary (last 30 days)
+GET http://localhost:3000/api/operations/summary/daily
+Authorization: Bearer TOKEN
+
+### Spending insights (last 90 days)
+GET http://localhost:3000/api/operations/analytics/insights?period=90
+Authorization: Bearer TOKEN
+
+### Export CSV
+GET http://localhost:3000/api/operations/export/csv?from=2024-01-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z
+Authorization: Bearer TOKEN

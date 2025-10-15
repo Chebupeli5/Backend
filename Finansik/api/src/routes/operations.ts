@@ -12,70 +12,107 @@ const opSchema = z.object({
   type: z.enum(['income', 'expense']),
   transaction: z.number().int(),
   date: z.string().datetime().optional(),
+  description: z.string().optional(),
+  tags: z.string().optional(), // comma-separated
+  is_recurring: z.boolean().optional(),
+  recurring_frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']).optional(),
+  recurring_end_date: z.string().datetime().optional(),
 });
 
 router.get('/', async (req: AuthRequest, res) => {
-  const { from, to, category_id, type } = req.query as any;
+  const { from, to, category_id, type, q, tags } = req.query as any;
   const where: any = { user_id: req.user!.userId };
   if (from || to) where.date = { gte: from ? new Date(from) : undefined, lte: to ? new Date(to) : undefined };
   if (category_id) where.category_id = Number(category_id);
   if (type) where.type = String(type);
+  if (q) where.description = { contains: String(q), mode: 'insensitive' };
+  if (tags) where.tags = { contains: String(tags), mode: 'insensitive' };
   const list = await prisma.operations.findMany({ where, orderBy: { date: 'desc' } });
   res.json(list);
 });
 
 router.post('/', async (req: AuthRequest, res) => {
-  const parsed = opSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const data = parsed.data;
-  const created = await prisma.operations.create({
-    data: {
-      user_id: req.user!.userId,
-      category_id: data.category_id,
-      type: data.type,
-      transaction: data.transaction,
-      date: data.date ? new Date(data.date) : undefined,
-    },
-  });
-  res.status(201).json(created);
+  try {
+    const parsed = opSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    const data = parsed.data;
+
+    // Validate category belongs to user
+    const category = await prisma.categories.findFirst({ where: { category_id: data.category_id, user_id: req.user!.userId } });
+    if (!category) return res.status(400).json({ error: 'Invalid category_id' });
+
+    const created = await prisma.operations.create({
+      data: {
+        user_id: req.user!.userId,
+        category_id: data.category_id,
+        type: data.type,
+        transaction: data.transaction,
+        date: data.date ? new Date(data.date) : undefined,
+        description: data.description,
+        tags: data.tags,
+        is_recurring: data.is_recurring ?? false,
+        recurring_frequency: data.recurring_frequency,
+        recurring_end_date: data.recurring_end_date ? new Date(data.recurring_end_date) : undefined,
+      },
+    });
+    res.status(201).json(created);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to create operation' });
+  }
+});
+
+// get by id
+router.get('/:id', async (req: AuthRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const op = await prisma.operations.findFirst({ where: { operation_id: id, user_id: req.user!.userId } });
+    if (!op) return res.status(404).json({ error: 'Not found' });
+    res.json(op);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch operation' });
+  }
+});
+
+// update
+router.put('/:id', async (req: AuthRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const parsed = opSchema.partial().safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    const data = parsed.data as any;
+
+    // Ensure operation exists and belongs to user
+    const existing = await prisma.operations.findFirst({ where: { operation_id: id, user_id: req.user!.userId } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    // If category_id provided, validate belongs to user
+    if (data.category_id !== undefined) {
+      const category = await prisma.categories.findFirst({ where: { category_id: data.category_id, user_id: req.user!.userId } });
+      if (!category) return res.status(400).json({ error: 'Invalid category_id' });
+    }
+
+    if (data.date) data.date = new Date(data.date);
+    if (data.recurring_end_date) data.recurring_end_date = new Date(data.recurring_end_date);
+
+    const updated = await prisma.operations.update({ where: { operation_id: id }, data });
+    res.json(updated);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to update operation' });
+  }
 });
 
 router.delete('/:id', async (req: AuthRequest, res) => {
-  const id = Number(req.params.id);
-  await prisma.operations.delete({ where: { operation_id: id } });
-  res.status(204).end();
+  try {
+    const id = Number(req.params.id);
+    // Ensure belongs to user
+    const existing = await prisma.operations.findFirst({ where: { operation_id: id, user_id: req.user!.userId } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    await prisma.operations.delete({ where: { operation_id: id } });
+    res.status(204).end();
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to delete operation' });
+  }
 });
-
-// summaries
-router.get('/summary/monthly', async (req: AuthRequest, res) => {
-  const { year } = req.query as any;
-  const y = Number(year) || new Date().getFullYear();
-  const start = new Date(`${y}-01-01T00:00:00.000Z`);
-  const end = new Date(`${y}-12-31T23:59:59.999Z`);
-  const rows = await prisma.$queryRaw<any[]>`
-    SELECT DATE_TRUNC('month', date) as m,
-           SUM(CASE WHEN type='income' THEN transaction ELSE 0 END) as income,
-           SUM(CASE WHEN type='expense' THEN transaction ELSE 0 END) as expense
-    FROM operations
-    WHERE user_id = ${req.user!.userId} AND date BETWEEN ${start} AND ${end}
-    GROUP BY 1
-    ORDER BY 1`;
-  res.json(rows);
-});
-
-router.get('/summary/by-category', async (req: AuthRequest, res) => {
-  const rows = await prisma.$queryRaw<any[]>`
-    SELECT c.name,
-           SUM(CASE WHEN o.type='income' THEN o.transaction ELSE 0 END) as income,
-           SUM(CASE WHEN o.type='expense' THEN o.transaction ELSE 0 END) as expense
-    FROM operations o
-    JOIN categories c ON c.category_id = o.category_id
-    WHERE o.user_id = ${req.user!.userId}
-    GROUP BY c.name
-    ORDER BY c.name`;
-  res.json(rows);
-});
-
 export default router;
 
 

@@ -46,14 +46,21 @@ model categorylimit {
 }
 
 model operations {
-  operation_id Int     @id @default(autoincrement())
-  user         Users   @relation(fields: [user_id], references: [user_id])
-  user_id      Int
-  category     categories @relation(fields: [category_id], references: [category_id])
-  category_id  Int
-  type         String   // income | expense
-  transaction  Int
-  date         DateTime @default(now())
+  operation_id       Int       @id @default(autoincrement())
+  user               Users     @relation(fields: [user_id], references: [user_id])
+  user_id            Int
+  category           categories @relation(fields: [category_id], references: [category_id])
+  category_id        Int
+  type               String   // income | expense
+  transaction        Int
+  date               DateTime @default(now())
+  description        String?
+  tags               String?   // comma-separated tags
+  is_recurring       Boolean   @default(false)
+  recurring_frequency String?  // daily | weekly | monthly | yearly
+  recurring_end_date DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @default(now()) @updatedAt
 }
 
 model assets {

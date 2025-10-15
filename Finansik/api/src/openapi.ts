@@ -1,6 +1,16 @@
 export const openApiSpec = {
   openapi: '3.0.3',
   info: { title: 'Finansik API', version: '0.1.0' },
+  tags: [
+    { name: 'System', description: 'Service health and misc endpoints' },
+    { name: 'Auth', description: 'Authentication and authorization' },
+    { name: 'Categories', description: 'Expense/Income categories and limits' },
+    { name: 'Assets', description: 'Financial assets (cash, cards, accounts)' },
+    { name: 'Savings', description: 'Savings accounts' },
+    { name: 'Goals', description: 'Financial goals' },
+    { name: 'Operations', description: 'Income/expense operations and analytics' },
+    { name: 'Analytics', description: 'Global analytics' },
+  ],
   servers: [
     { url: 'http://localhost:3000', description: 'Local development server' },
     { url: 'http://{host}:3000', description: 'Custom server', variables: { host: { default: 'localhost' } } },
@@ -13,9 +23,10 @@ export const openApiSpec = {
   },
   security: [{ bearerAuth: [] }],
   paths: {
-    '/health': { get: { summary: 'Health check', responses: { '200': { description: 'ok' } } } },
+    '/health': { get: { tags: ['System'], summary: 'Health check', responses: { '200': { description: 'ok' } } } },
     '/api/auth/signup': {
       post: {
+        tags: ['Auth'],
         summary: 'Signup',
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { login: { type: 'string' }, password: { type: 'string' }, visualname: { type: 'string' } }, required: ['login', 'password'] } } } },
         responses: { '200': { description: 'token' } },
@@ -23,6 +34,7 @@ export const openApiSpec = {
     },
     '/api/auth/login': {
       post: {
+        tags: ['Auth'],
         summary: 'Login (returns access and refresh tokens)',
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { login: { type: 'string' }, password: { type: 'string' } }, required: ['login', 'password'] } } } },
         responses: { '200': { description: 'tokens' } },
@@ -30,6 +42,7 @@ export const openApiSpec = {
     },
     '/api/auth/refresh': {
       post: {
+        tags: ['Auth'],
         summary: 'Refresh access token',
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { refreshToken: { type: 'string' } }, required: ['refreshToken'] } } } },
         responses: { '200': { description: 'new access token' } },
@@ -37,14 +50,16 @@ export const openApiSpec = {
     },
     '/api/auth/logout': {
       post: {
+        tags: ['Auth'],
         summary: 'Logout (revoke refresh token)',
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { refreshToken: { type: 'string' } }, required: ['refreshToken'] } } } },
         responses: { '204': { description: 'logged out' } },
       },
     },
     '/api/categories': {
-      get: { summary: 'List categories', responses: { '200': { description: 'ok' } } },
+      get: { tags: ['Categories'], summary: 'List categories', responses: { '200': { description: 'ok' } } },
       post: {
+        tags: ['Categories'],
         summary: 'Create category',
         requestBody: {
           required: true,
@@ -71,8 +86,9 @@ export const openApiSpec = {
       },
     },
     '/api/categories/limits': {
-      get: { summary: 'List category limits', responses: { '200': { description: 'ok' } } },
+      get: { tags: ['Categories'], summary: 'List category limits', responses: { '200': { description: 'ok' } } },
       post: {
+        tags: ['Categories'],
         summary: 'Create category limit',
         requestBody: {
           required: true,
@@ -99,6 +115,7 @@ export const openApiSpec = {
     },
     '/api/categories/limits/{id}': {
       delete: {
+        tags: ['Categories'],
         summary: 'Delete category limit by id',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -108,6 +125,7 @@ export const openApiSpec = {
     },
     '/api/categories/{id}': {
       delete: {
+        tags: ['Categories'],
         summary: 'Delete category by id',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -115,11 +133,83 @@ export const openApiSpec = {
         responses: { '204': { description: 'deleted' } },
       },
     },
-    '/api/analytics/balance': { get: { summary: 'Balances', responses: { '200': { description: 'ok' } } } },
+    // Operations
+    '/api/operations': {
+      get: {
+        tags: ['Operations'],
+        summary: 'List operations',
+        parameters: [
+          { in: 'query', name: 'from', schema: { type: 'string', format: 'date-time' } },
+          { in: 'query', name: 'to', schema: { type: 'string', format: 'date-time' } },
+          { in: 'query', name: 'category_id', schema: { type: 'integer' } },
+          { in: 'query', name: 'type', schema: { type: 'string', enum: ['income', 'expense'] } },
+          { in: 'query', name: 'q', schema: { type: 'string' }, description: 'Search in description' },
+          { in: 'query', name: 'tags', schema: { type: 'string' }, description: 'Filter by tags substring' },
+        ],
+        responses: { '200': { description: 'ok' } },
+      },
+      post: {
+        tags: ['Operations'],
+        summary: 'Create operation',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  category_id: { type: 'integer' },
+                  type: { type: 'string', enum: ['income', 'expense'] },
+                  transaction: { type: 'integer' },
+                  date: { type: 'string', format: 'date-time' },
+                  description: { type: 'string' },
+                  tags: { type: 'string', description: 'Comma-separated tags' },
+                  is_recurring: { type: 'boolean' },
+                  recurring_frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+                  recurring_end_date: { type: 'string', format: 'date-time' },
+                },
+                required: ['category_id', 'type', 'transaction'],
+              },
+              examples: {
+                income: { value: { category_id: 1, type: 'income', transaction: 50000, description: 'Salary', tags: 'salary,job' } },
+                expense: { value: { category_id: 2, type: 'expense', transaction: 1500, description: 'Groceries', tags: 'food,supermarket' } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+    '/api/operations/{id}': {
+      get: {
+        tags: ['Operations'],
+        summary: 'Get operation by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '200': { description: 'ok' }, '404': { description: 'Not found' } },
+      },
+      put: {
+        tags: ['Operations'],
+        summary: 'Update operation',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/OperationUpdate' } } },
+        },
+        responses: { '200': { description: 'updated' } },
+      },
+      delete: {
+        tags: ['Operations'],
+        summary: 'Delete operation by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '204': { description: 'deleted' } },
+      },
+    },
+    '/api/analytics/balance': { get: { tags: ['Analytics'], summary: 'Balances', responses: { '200': { description: 'ok' } } } },
     // Assets
     '/api/finance/assets': {
-      get: { summary: 'List assets', responses: { '200': { description: 'ok' } } },
+      get: { tags: ['Assets'], summary: 'List assets', responses: { '200': { description: 'ok' } } },
       post: {
+        tags: ['Assets'],
         summary: 'Create asset',
         requestBody: {
           required: true,
@@ -147,6 +237,7 @@ export const openApiSpec = {
     },
     '/api/finance/assets/{id}': {
       delete: {
+        tags: ['Assets'],
         summary: 'Delete asset by id',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -157,10 +248,12 @@ export const openApiSpec = {
     // Savings Accounts
     '/api/savings_accounts': {
       get: { 
+        tags: ['Savings'],
         summary: 'List savings accounts', 
         responses: { '200': { description: 'List of savings accounts for the authenticated user' } } 
       },
       post: {
+        tags: ['Savings'],
         summary: 'Create savings account',
         requestBody: {
           required: true,
@@ -189,6 +282,7 @@ export const openApiSpec = {
     },
     '/api/savings_accounts/{id}': {
       put: {
+        tags: ['Savings'],
         summary: 'Update savings account',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -217,6 +311,7 @@ export const openApiSpec = {
         responses: { '200': { description: 'Savings account updated successfully' } },
       },
       delete: {
+        tags: ['Savings'],
         summary: 'Delete savings account by id',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -227,10 +322,12 @@ export const openApiSpec = {
     // Financial Goals
     '/api/goals': {
       get: { 
+        tags: ['Goals'],
         summary: 'List financial goals', 
         responses: { '200': { description: 'List of financial goals for the authenticated user' } } 
       },
       post: {
+        tags: ['Goals'],
         summary: 'Create financial goal',
         requestBody: {
           required: true,
@@ -271,6 +368,7 @@ export const openApiSpec = {
     },
     '/api/goals/{id}': {
       get: {
+        tags: ['Goals'],
         summary: 'Get specific goal by ID',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -278,6 +376,7 @@ export const openApiSpec = {
         responses: { '200': { description: 'Goal details' } },
       },
       put: {
+        tags: ['Goals'],
         summary: 'Update financial goal',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -316,6 +415,7 @@ export const openApiSpec = {
         responses: { '200': { description: 'Goal updated successfully' } },
       },
       delete: {
+        tags: ['Goals'],
         summary: 'Delete financial goal by id',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -325,6 +425,7 @@ export const openApiSpec = {
     },
     '/api/goals/{id}/add-money': {
       post: {
+        tags: ['Goals'],
         summary: 'Add money to a goal',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -356,6 +457,7 @@ export const openApiSpec = {
     },
     '/api/goals/{id}/complete': {
       post: {
+        tags: ['Goals'],
         summary: 'Mark goal as completed',
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
@@ -368,6 +470,7 @@ export const openApiSpec = {
     },
     '/api/goals/analytics/summary': {
       get: {
+        tags: ['Goals'],
         summary: 'Get goal analytics and summary',
         responses: { 
           '200': { 
@@ -403,6 +506,7 @@ export const openApiSpec = {
     },
     '/api/goals/priority/{priority}': {
       get: {
+        tags: ['Goals'],
         summary: 'Get goals by priority level',
         parameters: [
           { in: 'path', name: 'priority', required: true, schema: { type: 'string', enum: ['low', 'medium', 'high'] } },
