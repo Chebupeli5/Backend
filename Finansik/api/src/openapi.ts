@@ -9,6 +9,8 @@ export const openApiSpec = {
     { name: 'Savings', description: 'Savings accounts' },
     { name: 'Goals', description: 'Financial goals' },
     { name: 'Operations', description: 'Income/expense operations and analytics' },
+    { name: 'Loans', description: 'Loans and schedules' },
+    { name: 'Notifications', description: 'User`s and system notifications' },
     { name: 'Analytics', description: 'Global analytics' },
   ],
   servers: [
@@ -205,6 +207,109 @@ export const openApiSpec = {
       },
     },
     '/api/analytics/balance': { get: { tags: ['Analytics'], summary: 'Balances', responses: { '200': { description: 'ok' } } } },
+    // Loans
+    '/api/loans': {
+      get: { tags: ['Loans'], summary: 'List loans', responses: { '200': { description: 'List of loans for the authenticated user' } } },
+      post: {
+        tags: ['Loans'],
+        summary: 'Create loan',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  credit_name: { type: 'string', minLength: 1, description: 'Loan/Credit name' },
+                  loan_balance: { type: 'integer', minimum: 1, description: 'Outstanding loan balance' },
+                  loan_payment: { type: 'integer', minimum: 1, description: 'Monthly payment amount' },
+                  payment_date: { type: 'string', format: 'date-time', description: 'First payment date' },
+                },
+                required: ['credit_name', 'loan_balance', 'loan_payment', 'payment_date'],
+              },
+              examples: {
+                basic: { value: { credit_name: 'Bank Loan', loan_balance: 100000, loan_payment: 10000, payment_date: '2025-01-15T00:00:00.000Z' } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+    '/api/loans/{id}': {
+      get: {
+        tags: ['Loans'],
+        summary: 'Get loan by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '200': { description: 'ok' }, '404': { description: 'Not found' } },
+      },
+      put: {
+        tags: ['Loans'],
+        summary: 'Update loan',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  credit_name: { type: 'string', minLength: 1 },
+                  loan_balance: { type: 'integer', minimum: 1 },
+                  loan_payment: { type: 'integer', minimum: 1 },
+                  payment_date: { type: 'string', format: 'date-time' },
+                },
+              },
+              examples: {
+                updateName: { value: { credit_name: 'Updated Loan Name' } },
+                updatePayment: { value: { loan_payment: 12000 } },
+                fullUpdate: { value: { credit_name: 'Consolidated Loan', loan_balance: 80000, loan_payment: 9000, payment_date: '2025-02-01T00:00:00.000Z' } },
+              },
+            },
+          },
+        },
+        responses: { '200': { description: 'updated' } },
+      },
+      delete: {
+        tags: ['Loans'],
+        summary: 'Delete loan by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '204': { description: 'deleted' } },
+      },
+    },
+    '/api/loans/schedule/{id}': {
+      get: {
+        tags: ['Loans'],
+        summary: 'Get payment schedule for a loan',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: {
+          '200': {
+            description: 'Payment schedule',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    schedule: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          installment: { type: 'integer' },
+                          amount: { type: 'integer' },
+                          due: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '404': { description: 'Not found' },
+        },
+      },
+    },
     // Assets
     '/api/finance/assets': {
       get: { tags: ['Assets'], summary: 'List assets', responses: { '200': { description: 'ok' } } },
@@ -515,6 +620,73 @@ export const openApiSpec = {
           '200': { description: 'Goals filtered by priority' },
           '400': { description: 'Invalid priority level' },
         },
+      },
+    },
+    // Notifications
+    '/api/notifications': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'List notifications',
+        responses: { '200': { description: 'List of notifications for the authenticated user' } },
+      },
+      post: {
+        tags: ['Notifications'],
+        summary: 'Create notification',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { message: { type: 'string', minLength: 1 } },
+                required: ['message'],
+              },
+              examples: {
+                basic: { value: { message: 'Payment due soon' } },
+              },
+            },
+          },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+    '/api/notifications/{id}': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get notification by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '200': { description: 'ok' }, '404': { description: 'Not found' } },
+      },
+      put: {
+        tags: ['Notifications'],
+        summary: 'Update notification',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { message: { type: 'string', minLength: 1 } },
+              },
+              examples: { update: { value: { message: 'Updated message' } } },
+            },
+          },
+        },
+        responses: { '200': { description: 'updated' } },
+      },
+      delete: {
+        tags: ['Notifications'],
+        summary: 'Delete notification by id',
+        parameters: [ { in: 'path', name: 'id', required: true, schema: { type: 'integer' } } ],
+        responses: { '204': { description: 'deleted' } },
+      },
+    },
+    '/api/notifications/due': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get due notifications (e.g., upcoming loan payments within 3 days)',
+        responses: { '200': { description: 'List of upcoming due events' } },
       },
     },
   },
