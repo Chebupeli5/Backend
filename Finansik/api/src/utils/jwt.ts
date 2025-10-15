@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 const accessSecret = process.env.JWT_SECRET || 'dev_secret_change_me';
 const refreshSecret = process.env.JWT_REFRESH_SECRET || 'dev_refresh_change_me';
 
-export function signAccessToken(payload: object, expiresIn: string | number = '15m'): string {
+export function signAccessToken(payload: object, expiresIn: string | number = '60m'): string {
   return (jwt.sign as any)(payload, accessSecret as any, { expiresIn });
 }
 

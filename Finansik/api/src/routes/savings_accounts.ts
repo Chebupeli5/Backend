@@ -21,7 +21,14 @@ router.get('/', async (req: AuthRequest, res) => {
     const list = await prisma.savings_accounts.findMany({ 
       where: { user_id: req.user!.userId } 
     });
-    res.json(list);
+    const withYield = list.map(acc => {
+      const rate = (acc.interest_rate ?? 0) as number;
+      const bal = (acc.balance ?? 0) as number;
+      const yearly_yield = Math.round(bal * (rate / 100));
+      const monthly_yield = Math.round(yearly_yield / 12);
+      return { ...acc, monthly_yield, yearly_yield };
+    });
+    res.json(withYield);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch savings accounts' });
   }
