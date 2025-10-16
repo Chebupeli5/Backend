@@ -16,7 +16,7 @@ $ngrokUrl = docker-compose logs ngrok | Select-String "started tunnel" | ForEach
 if ($ngrokUrl) {
     Write-Host "Ngrok URL found: $ngrokUrl" -ForegroundColor Green
     Write-Host "Swagger UI: $ngrokUrl/docs" -ForegroundColor Yellow
-    Write-Host "Adminer: $ngrokUrl/adminer/" -ForegroundColor Yellow
+    Write-Host "Prisma Studio: $ngrokUrl/studio/" -ForegroundColor Yellow
     Write-Host "API Health: $ngrokUrl/health" -ForegroundColor Yellow
     
     # Copy to clipboard
