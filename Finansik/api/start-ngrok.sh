@@ -38,8 +38,8 @@ echo "📖 Swagger документация:"
 curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name=="docs") | .public_url' 2>/dev/null || echo "   Docs туннель еще не готов"
 
 echo ""
-echo "🗄️  Adminer (управление БД):"
-curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name=="adminer") | .public_url' 2>/dev/null || echo "   Adminer туннель еще не готов"
+echo "🗄️  Prisma Studio (управление БД):"
+curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name=="studio") | .public_url' 2>/dev/null || echo "   Studio туннель еще не готов"
 
 echo ""
 echo "📊 Ngrok веб-интерфейс: http://localhost:4040"

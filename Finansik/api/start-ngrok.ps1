@@ -47,12 +47,12 @@ try {
     }
 
     Write-Host ""
-    Write-Host "🗄️  Adminer (управление БД):" -ForegroundColor White
-    $adminerUrl = (Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" | Where-Object { $_.name -eq "adminer" }).public_url
-    if ($adminerUrl) {
-        Write-Host "   $adminerUrl" -ForegroundColor Green
+    Write-Host "🗄️  Prisma Studio (управление БД):" -ForegroundColor White
+    $studioUrl = (Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" | Where-Object { $_.name -eq "studio" }).public_url
+    if ($studioUrl) {
+        Write-Host "   $studioUrl" -ForegroundColor Green
     } else {
-        Write-Host "   Adminer туннель еще не готов" -ForegroundColor Yellow
+        Write-Host "   Studio туннель еще не готов" -ForegroundColor Yellow
     }
 } catch {
     Write-Host "⚠️  Не удалось получить URL туннелей. Возможно, ngrok еще запускается." -ForegroundColor Yellow

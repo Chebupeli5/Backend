@@ -15,10 +15,10 @@ tunnels:
     schemes: ["https"]
     inspect: false
     
-  # Adminer для управления базой данных
-  adminer:
+  # Prisma Studio для управления базой данных
+  studio:
     proto: http
-    addr: adminer:8080
+    addr: prisma-studio:5555
     schemes: ["https"]
     inspect: false
 

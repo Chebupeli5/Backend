@@ -14,7 +14,7 @@ fi
 if [ ! -z "$NGROK_URL" ]; then
     echo "Ngrok URL found: $NGROK_URL"
     echo "Swagger UI: $NGROK_URL/docs"
-    echo "Adminer: $NGROK_URL/adminer/"
+    echo "Prisma Studio: $NGROK_URL/studio/"
     echo "API Health: $NGROK_URL/health"
     
     # Copy to clipboard (if xclip is available)

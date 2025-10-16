@@ -73,7 +73,7 @@ docker-compose up --build -d
 - **Health Check**: `https://your-subdomain.ngrok.io/health`
 
 ### 🗄️ Управление БД
-- **Adminer**: `https://your-subdomain.ngrok.io/adminer`
+- **Prisma Studio**: `https://your-subdomain.ngrok.io/studio/`
 
 ### 📊 Мониторинг
 - **Ngrok Dashboard**: `http://localhost:4040`
